@@ -36,16 +36,20 @@ class GetSet
   end
   
   def get_set(id, size = :original)
-    @queue = Queue.new
-
     if set = find_set(id)
       puts "getting set #{set_description set}"
       dir = set.title.to_filename
       FileUtils.mkdir_p dir
       puts "downloading to #{dir}/"
-      set.get_photos.each do |p|
-        @queue.enq({ :url => p.url(size), :filename => "#{dir}/#{p.title.to_filename}.jpg" })
+      per_page = 200
+      @queue = Queue.new
+      1.upto((set.num_photos.to_i / per_page) + 1) do |page|
+        puts "."
+        set.get_photos(:page => page, :per_page => per_page).each do |p|
+          @queue.enq({ :url => p.url(size), :filename => "#{dir}/#{p.title.to_filename}.jpg" })
+        end
       end
+      puts "found #{@queue.size} photos"
       spawn_workers
       wait_for_workers
     else
