@@ -17,11 +17,15 @@ class String
   end
 end
 
+# USAGE:
+# get_set auth jk
+# get_set sets jk
+# get_set jk setname
 class GetSet
   
   def initialize(name)
     @name = name
-    @flickr = Flickr.new('flickr.yml', :token_cache => "#{@name}.yml")
+    @flickr = Flickr.new('config/flickr.yml', :token_cache => "config/#{@name}.yml")
   end
   
   def show_sets
@@ -32,22 +36,23 @@ class GetSet
   end
   
   def get_set(id, size = :original)
+    @queue = Queue.new
+
     if set = find_set(id)
       puts "getting set #{set_description set}"
-      
+      dir = set.title.to_filename
+      FileUtils.mkdir_p dir
+      puts "downloading to #{dir}/"
       set.get_photos.each do |p|
-        puts  "#{p.title} #{p.url(size)}"
-        Zip::ZipFile.open("#{set.title.to_filename}.zip", Zip::ZipFile::CREATE) do |zipfile|
-          zipfile.file.open("#{p.title.to_filename}.jpg", "w") do |photo|
-            open( p.url(size) ){ |f| photo << f.read }
-          end
-        end
+        @queue.enq({ :url => p.url(size), :filename => "#{dir}/#{p.title.to_filename}.jpg" })
       end
+      spawn_workers
+      wait_for_workers
     else
       puts "no set matching #{id} found."
     end
   end
-
+  
   def authorize
     puts "visit the following url, then press <enter> once you have authorized:"
     # request read permissions
@@ -65,15 +70,45 @@ class GetSet
   def set_description(set)
     "#{set.id} #{set.title} (#{set.num_photos} photos)"
   end
+
+  
+  def spawn_workers(n = 5)
+    @workers = []
+    n.times do
+      t = Thread.new do
+        while !@stop && p = @queue.deq
+          begin
+            puts "downloading #{p[:url]}"
+            open( p[:url] ){ |f| (File.open(p[:filename], "w") << f.read).close }
+          rescue Exception
+            retries = (p[:retries] || 0) + 1
+            if retries < 3
+              @queue.enq p
+            else
+              puts "giving up downloading #{p.inspect}:\n#{$!}.message"
+            end
+          end
+        end
+      end
+      @workers << t
+    end
+  end
+  
+  def wait_for_workers
+    while !@queue.empty?
+      puts "#{@queue.size} items left..."
+      sleep 30
+    end
+    puts "killing workers..."
+    @stop = true
+    @workers.each { |w| w.join }
+    puts "Done."
+  end
   
 end
 
 
 
-
-# get_set auth jk
-# get_set sets jk
-# get_set jk setname
 
 
 cmd = ARGV.shift
