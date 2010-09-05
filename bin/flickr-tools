@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+
+require 'flickr-tools'
+include FlickrTools
+
+cmd = ARGV.shift
+app = FlickrTools::const_get(cmd).new ARGV
+
+puts "running #{app.inspect}"
+app.run
+
