@@ -1,7 +1,17 @@
+require 'flickr-tools/command'
+
 module FlickrTools
   
-  # flickr-tools Auth jk
+  # USAGE:
+  # flickr-tools Auth username
+  # 
+  # the username argument is just a shorthand to identify the same user in further calls to other flickr-tools commands, must not equal your flickr username.
   class Auth < Command
+    
+    def initialize(argv)
+      FileUtils.rm File.join(self.class.find_config_dir, "#{argv[0]}.yml")
+      super
+    end
     
     def run
       authorize
@@ -9,9 +19,9 @@ module FlickrTools
     
     def authorize
       puts "visit the following url, then press <enter> once you have authorized:"
-      # request read permissions
+      # request permissions
       puts @flickr.auth.url(:write)
-      gets
+      STDIN.gets
       @flickr.auth.cache_token
     end
     
