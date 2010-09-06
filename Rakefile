@@ -10,11 +10,11 @@ Rake::TestTask.new(:test) do |t|
   t.verbose = true
 end
 
-gemspec = eval(File.read("newgem.gemspec"))
+gemspec = eval(File.read("flickr-tools.gemspec"))
 
 task :build => "#{gemspec.full_name}.gem"
 
-file "#{gemspec.full_name}.gem" => gemspec.files + ["newgem.gemspec"] do
-  system "gem build newgem.gemspec"
-  system "gem install newgem-#{NewGem::VERSION}.gem"
+file "#{gemspec.full_name}.gem" => gemspec.files + ["flickr-tools.gemspec"] do
+  system "gem build flickr-tools.gemspec"
+  system "gem install flickr-tools-#{FlickrTools::VERSION}.gem"
 end

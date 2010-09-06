@@ -1,6 +1,6 @@
 require 'flickr-tools/command'
-require 'exifr'
-require 'iptc/iptc'
+# require 'exifr'
+require 'iptc'
 require 'pp'
 
 module FlickrTools
@@ -58,12 +58,12 @@ module FlickrTools
     end
     
     def iptc(file)
-      JPEG::Image.new(file).values
+      IPTC::JPEG::Image.new(file).values
     end
     
-    def exif(file)
-      pp EXIFR::JPEG.new(file).exif
-    end
+    # def exif(file)
+    #   pp EXIFR::JPEG.new(file).exif
+    # end
       
   end
 end

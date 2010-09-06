@@ -5,7 +5,8 @@ source "http://rubygems.org"
 gem "flickr-tools", :path => File.expand_path("..", __FILE__)
 gem 'rubyzip'
 gem 'flickr_fu'
-gem 'exifr'
+# gem 'exifr'
+gem 'iptc', '>=0.0.2'
 
 # These are development dependencies 
 gem "rake"

@@ -17,8 +17,8 @@ module FlickrTools
 
 
     def self.find_config_dir
-      config_dir = File.expand_path('../../..', __FILE__)
-      unless File.directory?(File.join(config_dir, 'config'))
+      config_dir = File.expand_path('../../../config', __FILE__)
+      unless File.directory?(config_dir)
         config_dir = File.join(ENV['HOME'], '.flickr-tools')
         FileUtils.mkdir_p config_dir
       end
