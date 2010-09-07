@@ -1,3 +1,7 @@
+require 'flickr_fu'
+require 'zip/zipfilesystem'
+require 'open-uri'
+
 require 'flickr-tools/command'
 
 # USAGE:
@@ -19,7 +23,7 @@ module FlickrTools
     
     def show_sets
       puts "getting sets for #{@name}"
-      @flickr.photosets.get_list.each do |set|
+      flickr.photosets.get_list.each do |set|
         puts set_description(set)
       end
     end
@@ -49,7 +53,7 @@ module FlickrTools
     protected
   
     def find_set(id)
-      @flickr.photosets.get_list.find{|set| set.id == id || set.title =~ /#{id}/i }
+      flickr.photosets.get_list.find{|set| set.id == id || set.title =~ /#{id}/i }
     end
   
     def set_description(set)

@@ -1,7 +1,9 @@
-require 'flickr-tools/command'
+require 'flickr_fu'
 # require 'exifr'
 require 'iptc'
 require 'pp'
+
+require 'flickr-tools/command'
 
 module FlickrTools
   
@@ -29,13 +31,15 @@ module FlickrTools
     def run
       upload @args.shift
     end
-  
+    
     def upload(file)
       raise "file not found: #{file}" unless File.readable?(file)
-      puts "uploading #{file}"
-      uploader = Flickr::Uploader.new @flickr
-      pp metadata_for(file)
-      # uploader.upload file, {:content_type => :photo, :safety_level => :safe, :hidden => false}.merge(metadata_for(file))
+      uploader = Flickr::Uploader.new flickr
+      # pp metadata_for(file)
+      meta = { :content_type => :photo, :safety_level => :safe, :hidden => false }.merge(metadata_for(file))
+      puts "uploading #{file} with\n#{meta.inspect}"
+      uploader.upload file, meta
+      puts "done."
     end
     
     protected

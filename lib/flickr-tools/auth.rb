@@ -8,21 +8,41 @@ module FlickrTools
   # the username argument is just a shorthand to identify the same user in further calls to other flickr-tools commands, must not equal your flickr username.
   class Auth < Command
     
-    def initialize(argv)
-      FileUtils.rm File.join(self.class.find_config_dir, "#{argv[0]}.yml")
-      super
-    end
-    
     def run
       authorize
     end
+        
+    def check_token(required_perms = :write)
+      res = flickr.auth.check_token
+      allowed_perms = case required_perms
+      when :read
+        %w(read write delete)
+      when :write
+        %w(write delete)
+      when :delete
+        %w(delete)
+      end
+      perm = res.auth.perms.to_s
+      if allowed_perms.include?(perm)
+        true
+      else
+        puts "insufficient permissions: #{perm}, required was: #{required_perms}"
+        false
+      end
+    rescue Exception
+      puts "check_token failed: #{$!}\n#{$!.backtrace.join("\n")}"
+      # authorize
+    end
+    
     
     def authorize
-      puts "visit the following url, then press <enter> once you have authorized:"
+      @flickr = nil
+      FileUtils.rm @token_cache
+      puts "please visit the following url, then press <enter> once you have authorized:"
       # request permissions
-      puts @flickr.auth.url(:write)
+      puts flickr.auth.url(:write)
       STDIN.gets
-      @flickr.auth.cache_token
+      flickr.auth.cache_token
     end
     
   end

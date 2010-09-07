@@ -7,5 +7,8 @@ cmd = ARGV.shift
 app = FlickrTools::const_get(cmd).new ARGV
 
 # puts "running #{app.inspect}"
+unless cmd == 'Auth'
+  FlickrTools::Auth.new(ARGV).check_token
+end
 app.run
 
