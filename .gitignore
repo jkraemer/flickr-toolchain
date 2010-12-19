@@ -1,3 +1,5 @@
+tmp
+.rvmrc
 config
 Gemfile.lock
 *.zip
