@@ -7,10 +7,10 @@ require 'flickr-tools/command'
 
 module FlickrTools
   
-  # Upload an image file to flickr.
+  # Upload one or more image files to flickr.
   #
   # USAGE:
-  # flickr-tools Upload jk path/to/image
+  # flickr-tools Upload jk path/to/image ...
   #
   # Flickr metadata is determined from the picture's IPTC metadata:
   # title       - iptc/Headline
@@ -29,32 +29,40 @@ module FlickrTools
     PRIVACY_KEYWORDS = %w(private friends family friends_and_family)
     
     def run
-      upload @args.shift
-    end
-    
-    def upload(file)
-      raise "file not found: #{file}" unless File.readable?(file)
-      uploader = Flickr::Uploader.new flickr
-      # pp metadata_for(file)
-      meta = { :content_type => :photo, :safety_level => :safe, :hidden => false }.merge(metadata_for(file))
-      puts "uploading #{file} with\n#{meta.inspect}"
-      uploader.upload file, meta
+      @uploader = Flickr::Uploader.new flickr      
+      @args.each { |f| upload_file f }
       puts "done."
     end
     
     protected
+
+    def upload_file(file)
+      if File.readable?(file)
+        meta = { :content_type => :photo, :safety_level => :safe, :hidden => false }.merge(metadata_for(file))
+        puts "uploading #{file} with\n#{meta.inspect}"
+        response = @uploader.upload file, meta
+        options = { :photo_id => response.photoid, :tags => meta[:tags] }
+        flickr.send_request('flickr.photos.setTags', options, :post)
+      else
+        puts "file not found: #{file}" 
+      end
+    rescue Exception
+      puts "Error uploading #{file}: #{$!}\n#{$!.backtrace.join("\n")}"
+    end
     
     def metadata_for(file)
       iptc = iptc(file)
-      keywords = iptc["iptc/Keywords"].value
-      privacy = ((keywords.include?('privacy') ? keywords.intersect(PRIVACY_KEYWORDS).first : nil ) || 'public').to_sym
-      
+      keywords = iptc["iptc/Keywords"].value rescue ''
       {
-        :title       => iptc["iptc/Headline"].value.first,
-        :description => iptc["iptc/Caption"].value.first,
-        :tags        => keywords_to_tags(keywords),
-        :privacy     => privacy
+        :title       => (iptc["iptc/Headline"].value.first rescue File.basename(file)),
+        :description => (iptc["iptc/Caption"].value.first rescue ''),
+        :tags        => keywords_to_tags(keywords).join(' '),
+        :privacy     => privacy(keywords)
       }
+    end
+    
+    def privacy(keywords)
+      privacy = ((keywords.include?('privacy') ? (keywords & PRIVACY_KEYWORDS).first : nil ) || 'public').to_sym
     end
     
     def keywords_to_tags(keywords)

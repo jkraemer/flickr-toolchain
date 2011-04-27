@@ -37,7 +37,7 @@ module FlickrTools
     
     def authorize
       @flickr = nil
-      FileUtils.rm @token_cache
+      FileUtils.rm_f @token_cache
       puts "please visit the following url, then press <enter> once you have authorized:"
       # request permissions
       puts flickr.auth.url(:write)
