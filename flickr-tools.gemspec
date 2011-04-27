@@ -16,7 +16,10 @@ Gem::Specification.new do |s|
   s.rubyforge_project         = "newgem"
 
   # If you have other dependencies, add them here
-  # s.add_dependency "another", "~> 1.2"
+  s.add_dependency "rubyzip"
+  s.add_dependency 'xml-magic'
+  s.add_dependency 'tomk32-flickr_fu', '>=0.3.4'
+  s.add_dependency 'iptc', '>= 0.0.2'
 
   # If you need to check in files that aren't .rb files, add them here
   s.files        = Dir["{lib}/**/*.rb", "bin/*", "LICENSE", "*.md", "doc/*"]
